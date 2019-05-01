@@ -67,6 +67,8 @@ def analysis_after_transform(df):
         show_revenue_vs_budget_norm(df)
         show_popularity_vs_budget_norm(df)
         show_runtime_vs_revenue_norm(df)
+        show_columns_nan_counts(df)
+
 
 def show_runtime(df):
     line()

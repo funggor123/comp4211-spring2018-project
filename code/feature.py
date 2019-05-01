@@ -8,8 +8,9 @@ from sklearn import preprocessing
 
 
 def feature(df):
-    feature_transform(df)
     feature_selection(df)
+    fill_missing_and_extract(df)
+    feature_transform(df)
     feature_encoding(df)
 
 
@@ -35,15 +36,28 @@ def feature_selection(df):
     df.drop(['homepage', 'imdb_id', 'original_title', 'status'], axis=1)
 
 
-def fill_missing_value(df):
+def fill_missing_and_extract(df):
     # Fill Genres
+    '''
     num_class = download_all_posters(df)
     train_loader, test_loader, class_labels = load_dataset()
     net = train(train_loader, test_loader, num_class)
     fill_genres(net, df, class_labels)
+    '''
 
-    #
-
+    df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: x[0]["name"] if x != {} else 'UNK')
+    df['genres'] = df['genres'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
+    df['production_companies'] = df['production_companies'].apply(
+        lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+    df['production_countries'] = df['production_countries'].apply(
+        lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+    df['spoken_languages'] = df['spoken_languages'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+    df['Keywords'] = df['Keywords'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+    df['cast'] = df['cast'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+    df['crew'] = df['crew'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+    df['tagline'] = df['tagline'].fillna('UNK')
+    df['overview'] = df['overview'].fillna('UNK')
+    df['runtime'] = df['runtime'].fillna(df['runtime'].median())
 
 def feature_encoding(df):
     cat_to_label(df)
@@ -54,66 +68,51 @@ def log_transform(df, column_name):
 
 
 def cat_to_label(df):
-    # Encode belongs to collection, create collection for each (one value)
+
+    # Belongs to Collection
     # Embedding -> Dense
     le = preprocessing.LabelEncoder()
-    collections = df["belongs_to_collection"].apply(lambda x: x[0]["name"] if x != {} else '?')
-    le.fit(collections.value_counts().index)
-    df["belongs_to_collection"] = le.transform(collections)
+    le.fit(df["belongs_to_collection"].value_counts().index)
+    df["belongs_to_collection"] = le.transform(df["belongs_to_collection"])
 
-    # Encode original language to labels [original lang can be treated as the production place] (one value)
-    # Embedding -> Dense
-    le = preprocessing.LabelEncoder()
-    origin_langs = df["original_language"].value_counts().index
-    le.fit(origin_langs)
-    df["original_language"] = le.transform(df["original_language"])
-
-    # Encode Genres (A list of value)
+    # Genres
     # Embedding -> Convolution
     le = preprocessing.LabelEncoder()
-    genre = df['genres'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
-    le.fit(list(set([i for j in genre for i in j])))
-    df['genres'] = genre.apply(lambda x: le.transform(x))
+    le.fit(list(set([i for j in df['genres'] for i in j])))
+    df['genres'] = df['genres'].apply(lambda x: le.transform(x))
 
-    # Production Company (A list of value)
+    # Production Company
     # Embedding -> Convolution
     le = preprocessing.LabelEncoder()
-    genre = df['production_companies'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
-    le.fit(list(set([i for j in genre for i in j])))
-    df['production_companies'] = genre.apply(lambda x: le.transform(x))
+    le.fit(list(set([i for j in df['production_companies'] for i in j])))
+    df['production_companies'] = df['production_companies'].apply(lambda x: le.transform(x))
 
-    # Production Counties (A list of value)
+    # Production Counties
     # Embedding -> Convolution
     le = preprocessing.LabelEncoder()
-    genre = df['production_countries'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
-    le.fit(list(set([i for j in genre for i in j])))
-    df['production_countries'] = genre.apply(lambda x: le.transform(x))
+    le.fit(list(set([i for j in df['production_countries'] for i in j])))
+    df['production_countries'] = df['production_countries'].apply(lambda x: le.transform(x))
 
-    # Spoken Language (A list of value)
+    # Spoken Language
     # Embedding -> Convolution
     le = preprocessing.LabelEncoder()
-    genre = df['spoken_languages'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
-    le.fit(list(set([i for j in genre for i in j])))
-    df['spoken_languages'] = genre.apply(lambda x: le.transform(x))
+    le.fit(list(set([i for j in df['spoken_languages'] for i in j])))
+    df['spoken_languages'] = df['spoken_languages'].apply(lambda x: le.transform(x))
 
     # Keywords
-    # Embedding -> Convolution
-    le = preprocessing.LabelEncoder()
-    keywords = df['Keywords'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
+    # LSTM -> Hidden Layer -> Attention
 
-    # Cast (A list of value)
+    # Cast
     # Embedding -> Convolution
     le = preprocessing.LabelEncoder()
-    genre = df['cast'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
-    le.fit(list(set([i for j in genre for i in j])))
-    df['cast'] = genre.apply(lambda x: le.transform(x))
+    le.fit(list(set([i for j in df['cast'] for i in j])))
+    df['cast'] = df['cast'].apply(lambda x: le.transform(x))
 
-    # Crew (A list of value)
+    # Crew
     # Embedding -> Convolution
     le = preprocessing.LabelEncoder()
-    genre = df['crew'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
-    le.fit(list(set([i for j in genre for i in j])))
-    df['crew'] = genre.apply(lambda x: le.transform(x))
+    le.fit(list(set([i for j in df['crew'] for i in j])))
+    df['crew'] = df['crew'].apply(lambda x: le.transform(x))
 
 
 def date(x):
