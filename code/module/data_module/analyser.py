@@ -1,10 +1,9 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
-import preprocess
+from module.data_module import preprocessor
 import numpy as np
 from wordcloud import WordCloud
 from collections import Counter
-import sys
 
 entire = True
 
@@ -17,7 +16,7 @@ def analysis(df):
         show_columns_descriptive_statistics(df)
         show_top_data(df, 10)
         show_columns_nan_counts(df)
-        preprocess.preprocess(df)
+        preprocessor.preprocess(df)
 
         # Columns Statistics
         show_title_dff_orgin_title(df)

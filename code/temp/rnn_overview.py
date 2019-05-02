@@ -1,9 +1,9 @@
-from attention_bi_lstm import BiLSTMAttention
-from dataloader import get_dataloaders
+from module.text_module.model import BiLSTMAttention
+from module.text_module.dataloader import get_dataloaders
 import torch
 from torch import nn
 import torch.optim as optim
-import preprocess
+from module.data_module import preprocessor
 
 mode_path = "./model/text/params.pkl"
 is_gpu = torch.cuda.is_available()
@@ -60,8 +60,8 @@ def train(train_loader, test_loader, num_class, model, early_stop=100, load_mode
 
 
 def main():
-    train_df, test_df = preprocess.load_data()
-    preprocess.preprocess(train_df)
+    train_df, test_df = preprocessor.load_data()
+    preprocessor.preprocess(train_df)
     train_loader, embedding_matrix, num_of_vocab = get_dataloaders(32, train_df)
     model = BiLSTMAttention(num_class=10, embedding_matrix=embedding_matrix)
     net = train(train_loader, None, num_class=9, model=model)

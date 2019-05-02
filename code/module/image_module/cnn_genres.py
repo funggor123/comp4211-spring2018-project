@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torchvision
 import urllib.request
-import preprocess
+from module.data_module import preprocessor
 import os
 from collections import Counter
 from torchvision.transforms import Compose, ToTensor, Resize, Normalize
@@ -209,8 +209,8 @@ def image_loader(image_name):
 
 
 def testing():
-    train_df, test_df = preprocess.load_data()
-    preprocess.preprocess(train_df)
+    train_df, test_df = preprocessor.load_data()
+    preprocessor.preprocess(train_df)
     num_class = download_all_posters(train_df)
     train_loader, test_loader, class_labels = load_dataset()
     net = train(train_loader, test_loader, num_class)
