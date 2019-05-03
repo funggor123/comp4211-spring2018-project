@@ -11,6 +11,7 @@ class FeatureEngine:
         self.categorical_columns = []
 
         self.scalar_columns = []
+        self.y_column = 'revenue'
 
     def run(self, df):
         self.feature_selection(df)
@@ -27,7 +28,7 @@ class FeatureEngine:
         self.log_transform(df, 'runtime')
 
         # Normalize the Feature
-        self.normalize(df, 'log_revenue')
+        self.normalize(df, 'log_revenue', add=False)
         self.normalize(df, 'log_budget')
         self.normalize(df, 'log_popularity')
         self.normalize(df, 'log_runtime')
@@ -42,9 +43,10 @@ class FeatureEngine:
         self.scalar_columns += ['cos_' + column_name]
         self.scalar_columns += ['sin_' + column_name]
 
-    def normalize(self, df, column_name):
+    def normalize(self, df, column_name, add=True):
         df['norm_' + column_name] = preprocessing.scale(df[column_name])
-        self.scalar_columns += ['norm_' + column_name]
+        if add:
+            self.scalar_columns += ['norm_' + column_name]
 
     @staticmethod
     def log_transform(df, column_name):
@@ -86,12 +88,12 @@ class FeatureEngine:
         fill_genres(net, df, class_labels)
         '''
 
-        df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: x[0]["name"] if x != {} else 'UNK')
-        df['genres'] = df['genres'].apply(lambda x: [i['name'] for i in x] if x != {} else [])
-        df['production_companies'] = df['production_companies'].apply(
-            lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+        df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+        df['genres'] = df['genres'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+        df['production_companies'] = df["production_companies"].apply(
+        lambda x: [x[i]["name"] for i in range(len(x))] if x != {} else ['UNK']).values
         df['production_countries'] = df['production_countries'].apply(
-            lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+            lambda x: [i['name'] for i in x] if x != {} else ['!'])
         df['spoken_languages'] = df['spoken_languages'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
         df['Keywords'] = df['Keywords'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
         df['cast'] = df['cast'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
@@ -108,49 +110,50 @@ class FeatureEngine:
 
         # Belongs to Collection
         le = preprocessing.LabelEncoder()
-        le.fit(df["belongs_to_collection"].value_counts().index)
-        df["belongs_to_collection"] = le.transform(df["belongs_to_collection"])
+        le.fit(['!'] + list(set([i for j in df['belongs_to_collection'] for i in j])))
+        df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: le.transform(x))
         self.categorical_dims.append(len(le.classes_))
         self.categorical_columns += ["belongs_to_collection"]
 
         # Genres
         le = preprocessing.LabelEncoder()
-        le.fit(list(set([i for j in df['genres'] for i in j])))
+        le.fit(['!'] +list(set([i for j in df['genres'] for i in j])))
         df['genres'] = df['genres'].apply(lambda x: le.transform(x))
         self.categorical_dims.append(len(le.classes_))
         self.categorical_columns += ["genres"]
 
         # Production Company
         le = preprocessing.LabelEncoder()
-        le.fit(list(set([i for j in df['production_companies'] for i in j])))
+
+        le.fit(['!'] +list(set([i for j in df['production_companies'] for i in j])))
         df['production_companies'] = df['production_companies'].apply(lambda x: le.transform(x))
         self.categorical_dims.append(len(le.classes_))
         self.categorical_columns += ["production_companies"]
 
         # Production Counties
         le = preprocessing.LabelEncoder()
-        le.fit(list(set([i for j in df['production_countries'] for i in j])))
+        le.fit(['!'] +list(set([i for j in df['production_countries'] for i in j])))
         df['production_countries'] = df['production_countries'].apply(lambda x: le.transform(x))
         self.categorical_dims.append(len(le.classes_))
         self.categorical_columns += ["production_countries"]
 
         # Spoken Language
         le = preprocessing.LabelEncoder()
-        le.fit(list(set([i for j in df['spoken_languages'] for i in j])))
+        le.fit(['!'] + list(set([i for j in df['spoken_languages'] for i in j])))
         df['spoken_languages'] = df['spoken_languages'].apply(lambda x: le.transform(x))
         self.categorical_dims.append(len(le.classes_))
         self.categorical_columns += ['spoken_languages']
 
         # Cast
         le = preprocessing.LabelEncoder()
-        le.fit(list(set([i for j in df['cast'] for i in j])))
+        le.fit(['!'] + list(set([i for j in df['cast'] for i in j])))
         df['cast'] = df['cast'].apply(lambda x: le.transform(x))
         self.categorical_dims.append(len(le.classes_))
         self.categorical_columns += ['cast']
 
         # Crew
         le = preprocessing.LabelEncoder()
-        le.fit(list(set([i for j in df['crew'] for i in j])))
+        le.fit(['!'] + list(set([i for j in df['crew'] for i in j])))
         df['crew'] = df['crew'].apply(lambda x: le.transform(x))
         self.categorical_dims.append(len(le.classes_))
         self.categorical_columns += ['crew']

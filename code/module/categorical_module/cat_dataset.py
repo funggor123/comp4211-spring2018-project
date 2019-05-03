@@ -12,7 +12,7 @@ class Dataset(data.Dataset):
         """Returns one data pair (source and target)."""
         x = []
         for column in range(self.sub_df.shape[1]):
-            x += torch.LongTensor(self.sub_df.iloc[index, column])
+            x.append(torch.LongTensor(self.sub_df.iloc[index, column]))
         return x
 
     def __len__(self):
@@ -20,5 +20,5 @@ class Dataset(data.Dataset):
 
 
 def get_dataset(df, columns):
-    train = Dataset(df, columns)
-    return train
+    dataset = Dataset(df, columns)
+    return dataset
