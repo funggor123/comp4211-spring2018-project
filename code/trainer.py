@@ -3,10 +3,14 @@ import torch.nn as nn
 import torch
 import torch.optim as optim
 import argparse
-from module.data_module import preprocessor, analyser, feature_engineer, y_dataset
-from module.categorical_module import cat_dataset
-from module.scalar_module import sc_dataset
+from module.data_module import preprocessor, analyser, feature_engineer, concat_dataset
+from sklearn.model_selection import train_test_split
 from model import MainModel
+import numpy as np
+from tensorboardX import SummaryWriter
+
+writer_train = SummaryWriter('runs/train_0')
+writer_vad = SummaryWriter('runs/vad_0')
 
 
 def trainer(args, train_loader, test_loader, model):
@@ -18,7 +22,7 @@ def trainer(args, train_loader, test_loader, model):
         model = model.cuda()
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-
+    model.train()
     for epoch in range(args.epoch):
         running_loss = 0.0
         for i, datas in enumerate(train_loader, 0):
@@ -26,6 +30,7 @@ def trainer(args, train_loader, test_loader, model):
             inputs, labels = datas
 
             # forward + backward + optimize
+            labels = torch.stack(labels).cuda()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
 
@@ -36,75 +41,88 @@ def trainer(args, train_loader, test_loader, model):
 
             # print statistics
             running_loss += loss.item()
-
-            max_vals, max_indices = torch.max(outputs, 1)
-            train_acc = (max_indices == labels).sum().data.cpu().numpy() / max_indices.size()[0]
-
-            if i % args.print_batch == args.print_batch - 1:  # print every 20 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / args.print_batch), ' train_acc', train_acc)
+            if i % args.print_batch == args.print_batch - 1:
+                print('[%d, %5d] Training loss (Running): %.3f' %
+                      (epoch + 1, i + 1, running_loss / args.print_batch))
+                if epoch % args.sampling_epoch == args.sampling_epoch - 1:
+                    print("|------Output Sampling---------|")
+                    print(np.expm1(outputs.cpu().detach().numpy()))
+                    print(np.expm1(labels.cpu().detach().numpy()))
+                    print("--------------------------------")
                 running_loss = 0.0
-        loss = 999999999999999
 
-        if loss < best_loss:
-            best_loss = loss
-        else:
-            stop_count += 1
-        if stop_count == args.early_stop:
-            break
-    print('Finished Training')
+        if args.early_stop is not -1:
+            vad_loss = validator(args, test_loader, model)
+            train_loss = validator(args, train_loader, model)
+            writer_train.add_scalar('MSE_loss_train', train_loss, epoch + 1)
+            writer_vad.add_scalar('MSE_loss_validation', vad_loss, epoch + 1)
+            if epoch % args.print_epoch == args.print_epoch - 1:
+                print('[%d] Training loss (Total): %.3f' %
+                      (epoch + 1, train_loss))
+                print('[%d] Validation loss (Total): %.3f' %
+                      (epoch + 1, vad_loss))
+
+            if vad_loss < best_loss:
+                best_loss = vad_loss
+            else:
+                stop_count += 1
+            if stop_count == args.early_stop:
+                break
+
     return model
 
 
-import torch.utils.data as data
+def validator(args, test_loader, model):
+    running_loss = 0
+    criterion = nn.MSELoss()
+    batch_count = 0
+
+    if args.gpu:
+        model = model.cuda()
+
+    for i, data in enumerate(test_loader, 0):
+        # get the inputs
+        inputs, labels = data
+
+        # forward + backward + optimize
+        labels = torch.stack(labels).cuda()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+
+        # print statistics
+        running_loss += loss.item()
+        batch_count += 1
+
+    return running_loss / batch_count
 
 
-class ConcatDataset(data.Dataset):
-    """Custom data.Dataset compatible with data.DataLoader."""
-
-    def __init__(self, x_list, y):
-        self.x_list = x_list
-        self.y = y
-
-    def __getitem__(self, index):
-        """Returns one data pair (source and target)."""
-        return [dataset.__getitem__(index) for dataset in self.x_list], self.y.__getitem__(index)
-
-    def __len__(self):
-        return len(self.y)
+def predictor():
+    print("hi")
 
 
-def my_collate(batch):
-    data = [item[0] for item in batch]
-    target = [item[1] for item in batch]
-    return [data, target]
-
-
-def get_data_loader(df, fg, batch_size):
-    categorical_dataset = cat_dataset.get_dataset(df, fg.categorical_columns)
-    scalar_dataset = sc_dataset.get_dataset(df, fg.scalar_columns)
-    label_dataset = y_dataset.get_dataset(df, fg.y_column)
-    dataset = ConcatDataset([categorical_dataset, scalar_dataset], label_dataset)
-    data_loader = torch.utils.data.DataLoader(dataset=dataset,
-                                              batch_size=32,
-                                              collate_fn=my_collate,
-                                              shuffle=True)
-    return data_loader
+def tuner():
+    print("hi")
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--lr", type=float, default=0.0001)
-    parser.add_argument("--batch_size", type=int, default=20)
-    parser.add_argument("--early_stop", type=int, default=20)
-    parser.add_argument("--print_batch", type=int, default=20)
-    parser.add_argument("--epoch", type=int, default=20)
+    parser.add_argument("--lr", type=float, default=0.01)
+    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--early_stop", type=int, default=300000)
+    parser.add_argument("--print_batch", type=int, default=70)
+    parser.add_argument("--print_epoch", type=int, default=5)
+    parser.add_argument("--sampling_epoch", type=int, default=50)
+    parser.add_argument("--epoch", type=int, default=100000)
+    parser.add_argument("--drop_prob", type=int, default=0.3)
+    parser.add_argument("--save", type=bool, default=False)
+    parser.add_argument("--test_size", type=float, default=0.2)
     parser.add_argument("--analysis", type=bool, default=False)
     parser.add_argument("--train", type=bool, default=True)
     parser.add_argument("--gpu", type=bool, default=torch.cuda.is_available())
     args = parser.parse_args()
 
     train_df, test_df = preprocessor.load_data()
+
     if args.analysis:
         analyser.analysis(train_df)
     else:
@@ -116,9 +134,12 @@ def main():
     if args.analysis:
         analyser.analysis_after_transform(train_df)
 
-    data_loader = get_data_loader(train_df, fg, args.batch_size)
-    model = MainModel(fg.categorical_dims, len(fg.scalar_columns))
-    trainer(args, data_loader, None, model)
+    if args.train:
+        train_df, vad_df = train_test_split(train_df, test_size=args.test_size)
+        train_data_loader = concat_dataset.get_data_loader(train_df, fg, args)
+        val_data_loader = concat_dataset.get_data_loader(vad_df, fg, args)
+        model = MainModel(fg.categorical_dims, len(fg.scalar_columns))
+        model = trainer(args, train_data_loader, val_data_loader, model)
 
 
 main()

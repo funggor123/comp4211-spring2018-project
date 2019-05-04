@@ -10,7 +10,7 @@ class Dataset(data.Dataset):
 
     def __getitem__(self, index):
         """Returns one data pair (source and target)."""
-        return torch.LongTensor(self.sub_df.iloc[index, :])
+        return torch.FloatTensor(self.sub_df.iloc[index, :])
 
     def __len__(self):
         return self.sub_df.shape[0]

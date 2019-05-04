@@ -10,17 +10,27 @@ class MainModel(nn.Module):
 
         self.categorical_encoder = CategoricalEncoder(categorical_dims)
         self.scalar_encoder = ScalarEncoder(scalar_dims)
-        self.input_dims = self.categorical_encoder.output_dims + self.scalar_encoder.output_dims
+        self.encoder_output_dim = self.categorical_encoder.encode_output_dim + self.scalar_encoder.encode_output_dim
+        self.l1_out_dim = int(self.encoder_output_dim ** 0.75)
+
+        # https://stackoverflow.com/questions/51052238/loss-increasing-with-batch-normalization-tf-keras
         self.linear = nn.Sequential(
-            nn.Linear(self.input_dims, int(self.input_dims ** 0.25)),
-            nn.ReLU()
+            nn.Linear(self.encoder_output_dim, self.l1_out_dim),
+            nn.ReLU(),
+            nn.Dropout(0.25)
         )
-        self.linear_last = nn.Linear(int(self.input_dims ** 0.25), 1)
+
+        self.linear_last = nn.Linear(self.l1_out_dim, 1)
+
+        print("------------Main Model Detail----------")
+        print("Encoder input dim :", self.encoder_output_dim)
+        print("l1 output dim :", self.l1_out_dim)
+        print("---------------------------------------")
 
     def forward(self, x, hidden=None):
         cat_h = self.categorical_encoder([item[0] for item in x])
         sc_h = self.scalar_encoder([item[1] for item in x])
-        out = torch.cat(cat_h, sc_h)
+        out = torch.cat((cat_h, sc_h), dim=1)
         out = self.linear(out)
         out = self.linear_last(out)
         return out

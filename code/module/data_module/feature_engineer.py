@@ -1,6 +1,7 @@
 import numpy as np
 from datetime import datetime
 from sklearn import preprocessing
+from sklearn.preprocessing import MinMaxScaler
 
 
 # Engine to Perform Feature Engineering
@@ -11,7 +12,8 @@ class FeatureEngine:
         self.categorical_columns = []
 
         self.scalar_columns = []
-        self.y_column = 'revenue'
+        self.y_column = 'log_revenue'
+        self.y_scalar = None
 
     def run(self, df):
         self.feature_selection(df)
@@ -44,9 +46,13 @@ class FeatureEngine:
         self.scalar_columns += ['sin_' + column_name]
 
     def normalize(self, df, column_name, add=True):
-        df['norm_' + column_name] = preprocessing.scale(df[column_name])
+        # Create a minimum and maximum processor object
+        scalar = preprocessing.MinMaxScaler()
+        df['norm_' + column_name] = scalar.fit_transform(df[column_name].values.reshape(-1, 1))
         if add:
             self.scalar_columns += ['norm_' + column_name]
+        else:
+            self.y_scalar = scalar
 
     @staticmethod
     def log_transform(df, column_name):
