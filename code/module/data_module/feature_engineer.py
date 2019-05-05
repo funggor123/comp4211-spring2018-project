@@ -12,7 +12,7 @@ class FeatureEngine:
         self.categorical_columns = []
 
         self.scalar_columns = []
-        self.y_column = 'log_revenue'
+        self.y_column = 'norm_log_revenue'
         self.y_scalar = None
 
     def run(self, df):

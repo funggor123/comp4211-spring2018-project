@@ -10,14 +10,14 @@ class MainModel(nn.Module):
 
         self.categorical_encoder = CategoricalEncoder(categorical_dims)
         self.scalar_encoder = ScalarEncoder(scalar_dims)
+
         self.encoder_output_dim = self.categorical_encoder.encode_output_dim + self.scalar_encoder.encode_output_dim
         self.l1_out_dim = int(self.encoder_output_dim ** 0.75)
 
         # https://stackoverflow.com/questions/51052238/loss-increasing-with-batch-normalization-tf-keras
         self.linear = nn.Sequential(
             nn.Linear(self.encoder_output_dim, self.l1_out_dim),
-            nn.ReLU(),
-            nn.Dropout(0.25)
+            nn.ELU(),
         )
 
         self.linear_last = nn.Linear(self.l1_out_dim, 1)

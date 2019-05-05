@@ -7,11 +7,13 @@ class ScalarEncoder(nn.Module):
     def __init__(self, encode_input_dim):
         super(ScalarEncoder, self).__init__()
         self.encode_output_dim = int(encode_input_dim ** 0.75)
+        self.drop_rate = 0.25
+
         self.linear = nn.Sequential(
             nn.Linear(encode_input_dim, self.encode_output_dim),
-            nn.ReLU6(),
+            nn.ELU(),
             nn.BatchNorm1d(self.encode_output_dim),
-            nn.Dropout(0.25)
+            #nn.Dropout(self.drop_rate)
         )
         print("------Scalar Network Detail------------")
         print("Encode Input dim :", encode_input_dim)

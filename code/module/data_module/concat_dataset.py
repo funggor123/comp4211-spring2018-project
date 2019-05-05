@@ -32,7 +32,7 @@ def my_collate(batch):
     return [data, target]
 
 
-def get_data_loader(df, fg, args):
+def get_data_loader(df, fg, args, test=False):
     categorical_dataset = cat_dataset.get_dataset(df, fg.categorical_columns)
     scalar_dataset = sc_dataset.get_dataset(df, fg.scalar_columns)
     label_dataset = y_dataset.get_dataset(df, fg.y_column)
@@ -40,6 +40,6 @@ def get_data_loader(df, fg, args):
     data_loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=args.batch_size,
                                               collate_fn=my_collate,
-                                              shuffle=True)
+                                              shuffle=not test)
 
     return data_loader
