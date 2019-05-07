@@ -1,14 +1,11 @@
-import sys
-import torch.nn as nn
 import torch
-import torch.optim as optim
-import argparse
-from module.data_module import preprocessor, analyser, feature_engineer, y_dataset
-from module.categorical_module import cat_dataset
-from module.scalar_module import sc_dataset
-from model import MainModel
 import torch.utils.data as data
-import numpy as np
+
+from module.categorical_module import cat_dataset
+from module.data_module import y_dataset
+from module.scalar_module import sc_dataset
+from module.text_module import txt_dataset
+from module.image_module import img_dataset
 
 
 class ConcatDataset(data.Dataset):
@@ -32,11 +29,18 @@ def my_collate(batch):
     return [data, target]
 
 
-def get_data_loader(df, fg, args, test=False):
+def get_data_loader(df, fg, args, vocab, test=False, img_dir_name="train"):
     categorical_dataset = cat_dataset.get_dataset(df, fg.categorical_columns)
     scalar_dataset = sc_dataset.get_dataset(df, fg.scalar_columns)
+
+    overview_dataset = txt_dataset.get_dataset(df, fg.text_column[0], vocab)
+    tagline_dataset = txt_dataset.get_dataset(df, fg.text_column[1], vocab)
+    title_dataset = txt_dataset.get_dataset(df, fg.text_column[2], vocab)
+
+    poster_dataset = img_dataset.get_dataset(df, img_dir_name)
+
     label_dataset = y_dataset.get_dataset(df, fg.y_column)
-    dataset = ConcatDataset([categorical_dataset, scalar_dataset], label_dataset)
+    dataset = ConcatDataset([categorical_dataset, scalar_dataset, overview_dataset, tagline_dataset, title_dataset, poster_dataset], label_dataset)
     data_loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=args.batch_size,
                                               collate_fn=my_collate,

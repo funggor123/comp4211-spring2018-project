@@ -1,5 +1,5 @@
 from module.text_module.model import BiLSTMAttention
-from module.text_module.dataloader import get_dataloaders
+from module.text_module.txt_dataset import get_dataloaders
 import torch
 from torch import nn
 import torch.optim as optim

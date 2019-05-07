@@ -157,8 +157,8 @@ class Preprocessor:
         string = self.lowercase(string)
         string = self.expand_contradiction(string)
         string = self.special_character_filtering(string)
-        string = self.stopwords_filtering(string)
-        string = self.root_extracting(string)
+        #string = self.stopwords_filtering(string)
+        #string = self.root_extracting(string)
         return string
 
     # Turn a Unicode string to plain ASCII, thanks to https://stackoverflow.com/a/518232/2809427

@@ -10,6 +10,7 @@ import time
 from model import MainModel
 import numpy as np
 from tensorboardX import SummaryWriter
+from module.text_module.txt_dataset import getVocab
 
 writer_train = SummaryWriter('runs/train_0')
 writer_vad = SummaryWriter('runs/vad_0')
@@ -179,15 +180,16 @@ def main():
         analyser.analysis_after_transform(train_df)
 
     model = None
+    vocab = getVocab()
     if args.train:
         train_df, vad_df = train_test_split(train_df, test_size=args.test_size)
-        train_data_loader = concat_dataset.get_data_loader(train_df, fg, args)
-        val_data_loader = concat_dataset.get_data_loader(vad_df, fg, args, test=True)
-        model = MainModel(fg.categorical_dims, len(fg.scalar_columns))
+        train_data_loader = concat_dataset.get_data_loader(train_df, fg, args, vocab)
+        val_data_loader = concat_dataset.get_data_loader(vad_df, fg, args,  vocab, test=True, img_dir_name="val")
+        model = MainModel(fg.categorical_dims, len(fg.scalar_columns), embedding_matrix=vocab.embeddings_matrix)
         model = trainer(args, train_data_loader, val_data_loader, model, fg)
 
     if args.test and model is not None:
-        test_data_loader = concat_dataset.get_data_loader(test_df, fg, args, test=True)
+        test_data_loader = concat_dataset.get_data_loader(test_df, fg, args, vocab, test=True, img_dir_name="test")
         predictor(args, test_data_loader, model)
 
 

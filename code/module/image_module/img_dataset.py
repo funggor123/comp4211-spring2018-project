@@ -1,4 +1,4 @@
-import torch
+from module.image_module.image_handler import ImageHandler
 import torchvision
 from torchvision.transforms import Compose, Resize, ToTensor, Normalize
 
@@ -14,15 +14,11 @@ def input_transform():
     ])
 
 
-def get_data_loaders(poster_dir_path, batch_size=32):
+def get_dataset(df, dir_name="train"):
+    handler = ImageHandler(dir_name)
+    handler.download_all_posters(df)
     train_dataset = torchvision.datasets.ImageFolder(
-        root=poster_dir_path,
+        root=handler.poster_dir_path,
         transform=input_transform()
     )
-
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset,
-        batch_size=batch_size,
-        shuffle=True
-    )
-    return train_loader
+    return train_dataset
