@@ -15,7 +15,7 @@ from module.text_module.txt_dataset import getVocab
 writer_train = SummaryWriter('runs/train_0')
 writer_vad = SummaryWriter('runs/vad_0')
 
-
+# https://www.kaggle.com/nakayamar/revenue-prediction-with-posters-using-cnn-keras
 def trainer(args, train_loader, test_loader, model, fg=None):
     best_loss = sys.maxsize
     stop_count = 0

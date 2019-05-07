@@ -3,16 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="01398170-6ebf-4770-8554-44d98a64df63" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/data_module/concat_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/data_module/concat_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/data_module/feature_engineer.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/data_module/feature_engineer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/image_module/dataloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/image_module/img_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/image_module/image_data_handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/image_module/image_handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/image_module/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/image_module/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/text_module/dataloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/text_module/txt_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/text_module/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/text_module/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/module/text_module/preprocessor.py" beforeDir="false" afterPath="$PROJECT_DIR$/module/text_module/preprocessor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/temp/rnn_overview.py" beforeDir="false" afterPath="$PROJECT_DIR$/temp/rnn_overview.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainer.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -29,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/trainer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="201">
-              <caret line="186" column="97" selection-start-line="186" selection-start-column="97" selection-end-line="186" selection-end-column="97" />
+            <state relative-caret-position="255">
+              <caret line="17" column="82" selection-start-line="17" selection-start-column="82" selection-end-line="17" selection-end-column="82" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -93,21 +83,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/module/text_module/model.py">
+        <entry file="file://$PROJECT_DIR$/module/image_module/image_handler.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <folding>
-                <element signature="e#1#32#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="144">
+              <caret line="14" selection-start-line="14" selection-end-line="14" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/module/image_module/image_handler.py">
+        <entry file="file://$USER_HOME$/.local/lib/python3.5/site-packages/pandas/core/series.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="180">
-              <caret line="14" column="10" lean-forward="true" selection-start-line="14" selection-start-column="10" selection-end-line="14" selection-end-column="10" />
+            <state relative-caret-position="152">
+              <caret line="3193" selection-start-line="3193" selection-end-line="3193" />
             </state>
           </provider>
         </entry>
@@ -280,6 +268,12 @@
             <path>
               <item name="codes" type="b2602c69:ProjectViewProjectNode" />
               <item name="code" type="462c0819:PsiDirectoryNode" />
+              <item name="module" type="462c0819:PsiDirectoryNode" />
+              <item name="image_module" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="codes" type="b2602c69:ProjectViewProjectNode" />
+              <item name="code" type="462c0819:PsiDirectoryNode" />
               <item name="runs" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -374,12 +368,12 @@
       <workItem from="1556806808485" duration="12664000" />
       <workItem from="1556860616338" duration="36134000" />
       <workItem from="1556982334854" duration="17938000" />
-      <workItem from="1557203258596" duration="9306000" />
+      <workItem from="1557203258596" duration="9665000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="181805000" />
+    <option name="totallyTimeSpent" value="182164000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -399,7 +393,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32833958" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.39450687" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.39450687" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39950064" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -408,7 +402,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info anchor="bottom" id="Terminal" order="11" weight="0.38510913" />
+      <window_info anchor="bottom" id="Terminal" order="11" visible="true" weight="0.38451934" />
       <window_info anchor="bottom" id="Python Console" order="12" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -429,9 +423,6 @@
     <SUITE FILE_PATH="coverage/code$code.coverage" NAME="preprocess Coverage Results" MODIFIED="1555430291382" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/data/poster/Adventure/5.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/data/poster/Thriller/2999.jpg">
       <provider selected="true" editor-type-id="images" />
     </entry>
@@ -732,13 +723,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/module/image_module/image_handler.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="14" column="10" lean-forward="true" selection-start-line="14" selection-start-column="10" selection-end-line="14" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/module/categorical_module/cat_dataset.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
@@ -749,10 +733,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/module/image_module/image_handler.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="14" selection-start-line="14" selection-end-line="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.local/lib/python3.5/site-packages/pandas/core/series.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="152">
+          <caret line="3193" selection-start-line="3193" selection-end-line="3193" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/trainer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="201">
-          <caret line="186" column="97" selection-start-line="186" selection-start-column="97" selection-end-line="186" selection-end-column="97" />
+        <state relative-caret-position="255">
+          <caret line="17" column="82" selection-start-line="17" selection-start-column="82" selection-end-line="17" selection-end-column="82" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
