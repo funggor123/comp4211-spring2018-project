@@ -12,7 +12,7 @@ class ImageEncoder(nn.Module):
         if pre_trained_path is not None:
             pre_train_net = self.pre_train_net.load_state_dict(torch.load(pre_trained_path))
 
-        self.output_size = input_size**0.25
+        self.output_size = int(input_size ** 0.25)
         pre_train_net.fc = nn.Linear(input_size, self.output_size)
 
         if torch.cuda.is_available():
