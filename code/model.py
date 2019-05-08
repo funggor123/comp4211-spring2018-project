@@ -55,7 +55,7 @@ class MainModel(nn.Module):
         poster_h = self.image_encoder([item[5] for item in x])
 
         out = torch.cat((cat_h, sc_h, overview_h, tagline_h, title_h, poster_h), dim=1)
-        out = self.linear(out)
+        out = self.linear1(out)
         out = self.linear2(out)
         out = self.linear_last(out)
         return out
