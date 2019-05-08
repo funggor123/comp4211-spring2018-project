@@ -29,8 +29,8 @@ def trainer(args, train_loader, test_loader, model, fg=None):
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     for epoch in range(args.epoch):
         running_loss = 0.0
+        model.train()
         for i, datas in enumerate(train_loader, 0):
-            model.train()
             # get the inputs
             inputs, labels = datas
 
