@@ -9,7 +9,7 @@ class ScalarEncoder(nn.Module):
         self.encode_output_dim = int(encode_input_dim ** 1.25)
         self.linear = nn.Sequential(
             nn.Linear(encode_input_dim, self.encode_output_dim),
-            nn.ELU(),
+            nn.RReLU(),
             nn.BatchNorm1d(self.encode_output_dim),
             #nn.Dropout(self.drop_rate)
         )

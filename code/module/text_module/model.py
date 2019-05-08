@@ -26,7 +26,7 @@ class BiLSTMAttention(nn.Module):
         self.attention_linear = nn.Linear(hidden_size, 1)
         self.linear_hidden = nn.Sequential(
             nn.Linear(self.hidden_size, self.output_size),
-            nn.ELU(),
+            nn.RReLU(),
             nn.BatchNorm1d(self.output_size),
             # nn.Dropout(self.drop_rate)
         )

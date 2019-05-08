@@ -27,7 +27,7 @@ class MainModel(nn.Module):
         # https://stackoverflow.com/questions/51052238/loss-increasing-with-batch-normalization-tf-keras
         self.linear = nn.Sequential(
             nn.Linear(self.encoder_output_dim, self.l1_out_dim),
-            nn.ELU(),
+            nn.RReLU(),
         )
 
         self.linear_last = nn.Linear(self.l1_out_dim, 1)

@@ -27,10 +27,10 @@ def trainer(args, train_loader, test_loader, model, fg=None):
         model = model.cuda()
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    model.train()
     for epoch in range(args.epoch):
         running_loss = 0.0
         for i, datas in enumerate(train_loader, 0):
+            model.train()
             # get the inputs
             inputs, labels = datas
 
@@ -121,6 +121,7 @@ def validator(args, test_loader, model):
     if args.gpu:
         model = model.cuda()
 
+    model.eval()
     for i, data in enumerate(test_loader, 0):
         # get the inputs
         inputs, labels = data

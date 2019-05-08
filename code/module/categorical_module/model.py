@@ -17,6 +17,7 @@ class CategoricalEncoder(nn.Module):
 
         assert len(input_dims) == len(self.embedding_dims)
 
+        # http://lamda.nju.edu.cn/weixs/project/CNNTricks/CNNTricks.html RReLU
         # https://www.itread01.com/content/1543647544.html
         self.embeddings = nn.ModuleList(
             [nn.Embedding(input_dims[i], self.embedding_dims[i]) for i in range(len(input_dims))])
@@ -24,14 +25,14 @@ class CategoricalEncoder(nn.Module):
         self.feature_linear = nn.ModuleList([
             nn.Sequential(
                 nn.Linear(self.embedding_dims[i], self.feature_linear_dim[i]),
-                nn.ELU(),
+                nn.RReLU(),
                 nn.BatchNorm1d(self.feature_linear_dim[i]),
                 #nn.Dropout(self.drop_rate)
             ) for i in range(len(input_dims))])
 
         self.encode_linear = nn.Sequential(
             nn.Linear(self.encode_input_dim, self.encode_output_dim),
-            nn.ELU(),
+            nn.RReLU(),
             nn.BatchNorm1d(self.encode_output_dim),
             #nn.Dropout(self.drop_rate)
         )
