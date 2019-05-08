@@ -7,7 +7,7 @@ import torch.nn.utils.rnn as rnn_utils
 # Encode the Text into a context vector
 # https://www.aclweb.org/anthology/P16-2034
 class BiLSTMAttention(nn.Module):
-    def __init__(self, embedding_dim=100, hidden_size=64, embedding_matrix=None):
+    def __init__(self, embedding_dim=128, hidden_size=128, embedding_matrix=None):
         super(BiLSTMAttention, self).__init__()
 
         if torch.cuda.is_available():

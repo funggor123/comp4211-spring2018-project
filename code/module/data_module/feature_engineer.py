@@ -45,6 +45,10 @@ class FeatureEngine:
     def encode_recursive_feature(self, df, column_name, max_limit):
         df['cos_' + column_name] = np.sin(2 * np.pi * df[column_name] / max_limit)
         df['sin_' + column_name] = np.cos(2 * np.pi * df[column_name] / max_limit)
+
+        self.normalize(df, 'sin_' + column_name)
+        self.normalize(df, 'cos_' + column_name)
+
         self.scalar_columns += ['cos_' + column_name]
         self.scalar_columns += ['sin_' + column_name]
 
