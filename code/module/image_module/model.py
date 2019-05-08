@@ -9,7 +9,7 @@ class ImageEncoder(nn.Module):
         super(ImageEncoder, self).__init__()
 
         pre_train_net = models.resnet18(pretrained=True)
-        fc_features = pre_train_net.fc.in_feature
+        fc_features = 512
 
         self.output_size = int(fc_features ** 0.25)
         pre_train_net.fc = nn.Linear(fc_features, self.output_size)
