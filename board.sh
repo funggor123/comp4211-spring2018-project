@@ -1,1 +1,1 @@
-tensorboard --logdir=code/runs
+tensorboard --logdir=code/logs

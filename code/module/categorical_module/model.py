@@ -11,9 +11,9 @@ class CategoricalEncoder(nn.Module):
 
         # https://datascience.stackexchange.com/questions/31109/ratio-between-embedded-vector-dimensions-and-vocabulary-size
         self.embedding_dims = [int(dim ** 0.25) for dim in input_dims]
-        self.feature_linear_dim = [int(dim ** 0.75) for dim in self.embedding_dims]
+        self.feature_linear_dim = [int(dim ** 1.25) for dim in self.embedding_dims]
         self.encode_input_dim = sum(self.feature_linear_dim)
-        self.encode_output_dim = int(self.encode_input_dim ** 0.75)
+        self.encode_output_dim = int(self.encode_input_dim ** 1.25)
         self.drop_rate = 0.25
 
         assert len(input_dims) == len(self.embedding_dims)

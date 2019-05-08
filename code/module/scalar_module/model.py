@@ -6,7 +6,7 @@ import torch
 class ScalarEncoder(nn.Module):
     def __init__(self, encode_input_dim):
         super(ScalarEncoder, self).__init__()
-        self.encode_output_dim = int(encode_input_dim ** 0.75)
+        self.encode_output_dim = int(encode_input_dim ** 1.25)
         self.drop_rate = 0.25
 
         self.linear = nn.Sequential(
@@ -15,10 +15,10 @@ class ScalarEncoder(nn.Module):
             nn.BatchNorm1d(self.encode_output_dim),
             #nn.Dropout(self.drop_rate)
         )
-        print("------Scalar Network Detail------------")
-        print("Encode Input dim :", encode_input_dim)
-        print("Encode Output dim :", self.encode_output_dim)
-        print("---------------------------------------")
+        print("------Scalar Features Encoder Detail------------")
+        print("Linear Layer Input dim :", encode_input_dim)
+        print("Linear Layer Output dim :", self.encode_output_dim)
+        print("------------------------------------------------")
 
     # Model Structure
     # linear

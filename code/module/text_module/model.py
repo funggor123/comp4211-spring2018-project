@@ -19,7 +19,7 @@ class BiLSTMAttention(nn.Module):
             embedding_dim = embedding_matrix.shape[1]
 
         self.hidden_size = hidden_size
-        self.output_size = int(self.hidden_size ** 0.75)
+        self.output_size = int(self.hidden_size ** 0.45)
 
         self.embedding = nn.Embedding.from_pretrained(embedding_matrix_tensor)
         self.lstm = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_size, bidirectional=True)
@@ -30,6 +30,12 @@ class BiLSTMAttention(nn.Module):
             nn.BatchNorm1d(self.output_size),
             # nn.Dropout(self.drop_rate)
         )
+
+        print("------Text Features Encoder Detail------------")
+        print("Embedding Layer Output Dim :", embedding_dim)
+        print("LSTM Hidden Dim :", self.hidden_size)
+        print("Linear Layer Output Dim :", self.output_size)
+        print("------------------------------------------------")
 
     # Model Structure
     # Embedding -> LSTM -> Attention -> Linear
@@ -43,7 +49,7 @@ class BiLSTMAttention(nn.Module):
 
     def attention(self, x, attention_linear):
         hidden_states = x[:, :, :self.hidden_size] + x[:, :, self.hidden_size:]
-        hidden_states = F.tanh(hidden_states)
+        hidden_states = torch.tanh(hidden_states)
         e = attention_linear(hidden_states)
         a = F.softmax(e, dim=1)
         out = torch.sum(torch.mul(hidden_states, a), 1)

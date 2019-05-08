@@ -12,16 +12,21 @@ class ImageEncoder(nn.Module):
         if pre_trained_path is not None:
             pre_train_net = self.pre_train_net.load_state_dict(torch.load(pre_trained_path))
 
-        self.output_size = 5
-        pre_train_net.fc = nn.Linear(input_size, 5)
+        self.output_size = 15
+        pre_train_net.fc = nn.Linear(input_size, self.output_size)
 
         if torch.cuda.is_available():
             pre_train_net = pre_train_net.cuda()
 
         self.pre_train_net = pre_train_net
 
+        print("------Image Features Encoder Detail------------")
+        print("Resnet Output Dim:", self.output_size)
+        print("------------------------------------------------")
+
     # Model Structure
     # Use Pre-Train CNN to process the image
     def forward(self, x):
+        x = torch.stack(x).cuda()
         out = self.pre_train_net(x)
         return out

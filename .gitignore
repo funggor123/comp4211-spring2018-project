@@ -9,6 +9,7 @@ model/
 *.so
 GoogleNews-vectors-negative300.bin
 code/data/
+code/poster/
 # Distribution / packaging
 .Python
 env/

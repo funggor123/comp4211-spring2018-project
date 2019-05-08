@@ -1,7 +1,7 @@
-cd ./code/runs/vad_0
+cd ./code/logs/vad_0
 rm *.fung
 cd ..
 cd ..
 cd ..
-cd ./code/runs/train_0
+cd ./code/logs/train_0
 rm *.fung

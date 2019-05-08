@@ -11,9 +11,11 @@ from model import MainModel
 import numpy as np
 from tensorboardX import SummaryWriter
 from module.text_module.txt_dataset import getVocab
+from module.image_module.image_handler import ImageHandler
 
-writer_train = SummaryWriter('runs/train_0')
-writer_vad = SummaryWriter('runs/vad_0')
+writer_train = SummaryWriter('logs/train_0')
+writer_vad = SummaryWriter('logs/vad_0')
+
 
 # https://www.kaggle.com/nakayamar/revenue-prediction-with-posters-using-cnn-keras
 def trainer(args, train_loader, test_loader, model, fg=None):
@@ -51,6 +53,9 @@ def trainer(args, train_loader, test_loader, model, fg=None):
                     print("|------Output Sampling---------|")
                     print(outputs.cpu().detach().numpy())
                     print(labels.cpu().detach().numpy())
+                    print("----------Real------------------")
+                    print(np.expm1(fg.y_scalar.inverse_transform(outputs.cpu().detach().numpy())))
+                    print(np.expm1(fg.y_scalar.inverse_transform(labels.cpu().detach().numpy())))
                     print("--------------------------------")
                 running_loss = 0.0
 
@@ -76,6 +81,16 @@ def trainer(args, train_loader, test_loader, model, fg=None):
 
             writer_train.add_histogram("sc_encoder_linear", model.scalar_encoder.linear[0].weight.grad, epoch + 1)
             writer_train.add_histogram("ca_encoder_linear", model.categorical_encoder.encode_linear[0].weight.grad,
+                                       epoch + 1)
+
+            writer_train.add_histogram("title_encoder_linear", model.title_encoder.linear_hidden[0].weight.grad,
+                                       epoch + 1)
+            writer_train.add_histogram("title_encoder_linear", model.title_encoder.attention_linear.weight.grad,
+                                       epoch + 1)
+
+            writer_train.add_histogram("overview_encoder_linear", model.overview_encoder.linear_hidden[0].weight.grad,
+                                       epoch + 1)
+            writer_train.add_histogram("overview_encoder_linear", model.overview_encoder.attention_linear.weight.grad,
                                        epoch + 1)
 
             vad_loss = validator(args, test_loader, model)
@@ -182,14 +197,19 @@ def main():
     model = None
     vocab = getVocab()
     if args.train:
-        train_df, vad_df = train_test_split(train_df, test_size=args.test_size)
-        train_data_loader = concat_dataset.get_data_loader(train_df, fg, args, vocab)
-        val_data_loader = concat_dataset.get_data_loader(vad_df, fg, args,  vocab, test=True, img_dir_name="val")
+        handler = ImageHandler("train")
+        handler.download_all_posters(train_df)
+        train_df, vad_df = train_test_split(train_df, test_size=args.test_size, random_state=42)
+        train_data_loader = concat_dataset.get_data_loader(train_df, fg, args, vocab, handler)
+        val_data_loader = concat_dataset.get_data_loader(vad_df, fg, args, vocab, handler, test=True)
         model = MainModel(fg.categorical_dims, len(fg.scalar_columns), embedding_matrix=vocab.embeddings_matrix)
         model = trainer(args, train_data_loader, val_data_loader, model, fg)
 
     if args.test and model is not None:
-        test_data_loader = concat_dataset.get_data_loader(test_df, fg, args, vocab, test=True, img_dir_name="test")
+        # FE
+        handler = ImageHandler("test")
+        handler.download_all_posters(test_df)
+        test_data_loader = concat_dataset.get_data_loader(test_df, fg, args, vocab, handler, test=True)
         predictor(args, test_data_loader, model)
 
 

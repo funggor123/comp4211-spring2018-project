@@ -29,7 +29,7 @@ def my_collate(batch):
     return [data, target]
 
 
-def get_data_loader(df, fg, args, vocab, test=False, img_dir_name="train"):
+def get_data_loader(df, fg, args, vocab, handler, test=False):
     categorical_dataset = cat_dataset.get_dataset(df, fg.categorical_columns)
     scalar_dataset = sc_dataset.get_dataset(df, fg.scalar_columns)
 
@@ -37,7 +37,7 @@ def get_data_loader(df, fg, args, vocab, test=False, img_dir_name="train"):
     tagline_dataset = txt_dataset.get_dataset(df, fg.text_column[1], vocab)
     title_dataset = txt_dataset.get_dataset(df, fg.text_column[2], vocab)
 
-    poster_dataset = img_dataset.get_dataset(df, img_dir_name)
+    poster_dataset = img_dataset.get_dataset(df, handler)
 
     label_dataset = y_dataset.get_dataset(df, fg.y_column)
     dataset = ConcatDataset([categorical_dataset, scalar_dataset, overview_dataset, tagline_dataset, title_dataset, poster_dataset], label_dataset)
