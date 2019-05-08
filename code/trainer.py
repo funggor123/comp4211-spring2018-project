@@ -164,7 +164,7 @@ def tuner():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--lr", type=float, default=0.01)
+    parser.add_argument("--lr", type=float, default=0.1)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epoch", type=int, default=100000)
     parser.add_argument("--drop_prob", type=int, default=0.3)

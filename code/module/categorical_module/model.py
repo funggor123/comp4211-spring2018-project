@@ -14,7 +14,6 @@ class CategoricalEncoder(nn.Module):
         self.feature_linear_dim = [int(dim ** 1.25) for dim in self.embedding_dims]
         self.encode_input_dim = sum(self.feature_linear_dim)
         self.encode_output_dim = int(self.encode_input_dim ** 1.25)
-        self.drop_rate = 0.25
 
         assert len(input_dims) == len(self.embedding_dims)
 
@@ -59,6 +58,7 @@ class CategoricalEncoder(nn.Module):
         cat_feature_h = torch.cat(feature_h, dim=1)
         categorical_h = self.encode_linear(cat_feature_h)
         return categorical_h
+
 
     @staticmethod
     def attention(x, attention_linear):

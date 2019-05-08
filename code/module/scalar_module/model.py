@@ -7,8 +7,6 @@ class ScalarEncoder(nn.Module):
     def __init__(self, encode_input_dim):
         super(ScalarEncoder, self).__init__()
         self.encode_output_dim = int(encode_input_dim ** 1.25)
-        self.drop_rate = 0.25
-
         self.linear = nn.Sequential(
             nn.Linear(encode_input_dim, self.encode_output_dim),
             nn.ELU(),

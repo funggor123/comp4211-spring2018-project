@@ -19,7 +19,7 @@ class BiLSTMAttention(nn.Module):
             embedding_dim = embedding_matrix.shape[1]
 
         self.hidden_size = hidden_size
-        self.output_size = int(self.hidden_size ** 0.45)
+        self.output_size = int(self.hidden_size ** 1.25)
 
         self.embedding = nn.Embedding.from_pretrained(embedding_matrix_tensor)
         self.lstm = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_size, bidirectional=True)
