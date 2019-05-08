@@ -22,15 +22,22 @@ class MainModel(nn.Module):
         self.encoder_output_dim = self.categorical_encoder.encode_output_dim + self.scalar_encoder.encode_output_dim + \
                                   self.overview_encoder.output_size + self.tagline_encoder.output_size + self.title_encoder.output_size + \
                                   self.image_encoder.output_size
-        self.l1_out_dim = int(self.encoder_output_dim ** 0.75)
+        self.l1_out_dim = int(self.encoder_output_dim ** 1.25)
+        self.l2_out_dim = int(self.l1_out_dim ** 0.75)
 
         # https://stackoverflow.com/questions/51052238/loss-increasing-with-batch-normalization-tf-keras
-        self.linear = nn.Sequential(
+        self.linear1 = nn.Sequential(
             nn.Linear(self.encoder_output_dim, self.l1_out_dim),
+            nn.RReLU(),
+            nn.BatchNorm1d(self.l1_out_dim)
+        )
+
+        self.linear2 = nn.Sequential(
+            nn.Linear(self.l1_out_dim, self.l2_out_dim),
             nn.RReLU(),
         )
 
-        self.linear_last = nn.Linear(self.l1_out_dim, 1)
+        self.linear_last = nn.Linear(self.l2_out_dim, 1)
 
         print("------------Main Model Detail----------")
         print("Encoder input dim :", self.encoder_output_dim)
@@ -49,5 +56,6 @@ class MainModel(nn.Module):
 
         out = torch.cat((cat_h, sc_h, overview_h, tagline_h, title_h, poster_h), dim=1)
         out = self.linear(out)
+        out = self.linear2(out)
         out = self.linear_last(out)
         return out

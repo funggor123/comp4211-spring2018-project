@@ -62,7 +62,8 @@ def trainer(args, train_loader, test_loader, model, fg=None):
         if args.early_stop is not -1:
 
             writer_train.add_histogram("last_linear", model.linear_last.weight.grad, epoch + 1)
-            writer_train.add_histogram("linear", model.linear[0].weight.grad, epoch + 1)
+            writer_train.add_histogram("linear", model.linear1[0].weight.grad, epoch + 1)
+            writer_train.add_histogram("linear2", model.linear2[0].weight.grad, epoch + 1)
 
             writer_train.add_histogram("attention_linear0", model.categorical_encoder.attention_linear[0].weight.grad,
                                        epoch + 1)
@@ -165,7 +166,7 @@ def tuner():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--lr", type=float, default=0.01)
+    parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epoch", type=int, default=100000)
     parser.add_argument("--drop_prob", type=int, default=0.3)
