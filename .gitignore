@@ -5,6 +5,7 @@ __pycache__/
 EMNIST/
 runs/
 model/
+logs/
 # C extensions
 *.so
 GoogleNews-vectors-negative300.bin

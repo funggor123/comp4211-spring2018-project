@@ -4,14 +4,15 @@ import torch
 
 # Encode all Scalar Features into linear hidden vector
 class ScalarEncoder(nn.Module):
-    def __init__(self, encode_input_dim):
+    def __init__(self, encode_input_dim, drop=0.25):
         super(ScalarEncoder, self).__init__()
-        self.encode_output_dim = int(encode_input_dim ** 1.25)
+        self.encode_output_dim = int(encode_input_dim ** 1)
+
         self.linear = nn.Sequential(
             nn.Linear(encode_input_dim, self.encode_output_dim),
             nn.RReLU(),
             nn.BatchNorm1d(self.encode_output_dim),
-            #nn.Dropout(self.drop_rate)
+            nn.Dropout(drop)
         )
         print("------Scalar Features Encoder Detail------------")
         print("Linear Layer Input dim :", encode_input_dim)

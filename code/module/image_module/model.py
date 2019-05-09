@@ -11,7 +11,9 @@ class ImageEncoder(nn.Module):
         pre_train_net = models.resnet18(pretrained=True)
         fc_features = 512
 
-        self.output_size = int(fc_features ** 0.25)
+        #self.output_size = int(fc_features ** 0.25)
+        self.output_size = 64
+
         pre_train_net.fc = nn.Linear(fc_features, self.output_size)
 
         if torch.cuda.is_available():

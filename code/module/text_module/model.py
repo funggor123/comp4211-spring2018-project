@@ -7,7 +7,7 @@ import torch.nn.utils.rnn as rnn_utils
 # Encode the Text into a context vector
 # https://www.aclweb.org/anthology/P16-2034
 class BiLSTMAttention(nn.Module):
-    def __init__(self, embedding_dim=128, hidden_size=128, embedding_matrix=None):
+    def __init__(self, drop=0.25, embedding_dim=32, hidden_size=32, embedding_matrix=None):
         super(BiLSTMAttention, self).__init__()
 
         if torch.cuda.is_available():
@@ -19,7 +19,7 @@ class BiLSTMAttention(nn.Module):
             embedding_dim = embedding_matrix.shape[1]
 
         self.hidden_size = hidden_size
-        self.output_size = int(self.hidden_size ** 1.25)
+        self.output_size = int(self.hidden_size ** 1)
 
         self.embedding = nn.Embedding.from_pretrained(embedding_matrix_tensor)
         self.lstm = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_size, bidirectional=True)
@@ -28,7 +28,7 @@ class BiLSTMAttention(nn.Module):
             nn.Linear(self.hidden_size, self.output_size),
             nn.RReLU(),
             nn.BatchNorm1d(self.output_size),
-            # nn.Dropout(self.drop_rate)
+            nn.Dropout(drop)
         )
 
         print("------Text Features Encoder Detail------------")

@@ -1,65 +1,93 @@
 import numpy as np
 from datetime import datetime
 from sklearn import preprocessing
-from sklearn.preprocessing import StandardScaler
 
 
-# Engine to Perform Feature Engineering
+# Engine to Perform Feature Engineering and Data PreProcessing
 class FeatureEngine:
 
     def __init__(self):
         self.categorical_dims = []
         self.categorical_columns = []
+        self.cat_encoder = []
 
         self.scalar_columns = []
+        self.scalar_scalar = []
 
         self.y_column = 'norm_log_revenue'
         self.y_scalar = None
 
         self.text_column = ['overview', 'tagline', 'title']
 
-    def run(self, df):
+    def transform_and_fit(self, df):
         self.feature_selection(df)
         self.feature_cleaning(df)
         self.feature_encoding(df)
         self.feature_transform(df)
 
-    def feature_transform(self, df):
+    def transform(self, df):
+        self.feature_selection(df)
+        self.feature_cleaning(df)
+        self.feature_encoding(df, fit=True)
+        self.feature_transform(df, fit=True, test=True)
+
+    def feature_transform(self, df, fit=False, test=False):
 
         # Transform to Normal Dist
-        self.log_transform(df, 'revenue')
+        if not test:
+            self.log_transform(df, 'revenue')
         self.log_transform(df, 'budget')
         self.log_transform(df, 'popularity')
         self.log_transform(df, 'runtime')
 
         # Normalize the Feature
-        self.normalize(df, 'log_revenue', add=False)
-        self.normalize(df, 'log_budget')
-        self.normalize(df, 'log_popularity')
-        self.normalize(df, 'log_runtime')
+        if not test:
+            self.normalize(df, 'log_revenue', target=True, fit=fit)
+        self.normalize(df, 'log_budget', fit=fit)
+        self.normalize(df, 'log_popularity', fit=fit)
+        self.normalize(df, 'log_runtime', fit=fit)
+
+        self.normalize(df, 'production_countries_count', fit=fit)
+        self.normalize(df, 'production_companies_count', fit=fit)
+        self.normalize(df, 'cast_count', fit=fit)
+        self.normalize(df, 'crew_count', fit=fit)
+        self.normalize(df, 'num_Keywords', fit=fit)
+
+        self.normalize(df, 'popularity_mean_year', fit=fit)
+        self.normalize(df, 'budget_runtime_ratio', fit=fit)
+        self.normalize(df, 'budget_popularity_ratio', fit=fit)
+        self.normalize(df, 'budget_year_ratio', fit=fit)
+        self.normalize(df, 'releaseYear_popularity_ratio', fit=fit)
+        self.normalize(df, 'releaseYear_popularity_ratio2', fit=fit)
+        self.normalize(df, 'inflationBudget', fit=fit)
 
         # Transform the Recursive Feature
-        self.encode_recursive_feature(df, 'release_day', 6)
-        self.encode_recursive_feature(df, 'release_month', 11)
+        self.encode_recursive_feature(df, 'release_day', 6, fit=fit)
+        self.encode_recursive_feature(df, 'release_month', 11, fit=fit)
 
-    def encode_recursive_feature(self, df, column_name, max_limit):
+    def encode_recursive_feature(self, df, column_name, max_limit, fit):
         df['cos_' + column_name] = np.sin(2 * np.pi * df[column_name] / max_limit)
         df['sin_' + column_name] = np.cos(2 * np.pi * df[column_name] / max_limit)
 
-        self.normalize(df, 'sin_' + column_name)
-        self.normalize(df, 'cos_' + column_name)
+        self.normalize(df, 'sin_' + column_name, fit=fit)
+        self.normalize(df, 'cos_' + column_name, fit=fit)
 
-        self.scalar_columns += ['cos_' + column_name]
-        self.scalar_columns += ['sin_' + column_name]
+    def normalize(self, df, column_name, fit, target=False):
 
-    def normalize(self, df, column_name, add=True):
-        # Create a minimum and maximum processor object
-        scalar = preprocessing.StandardScaler()
-        df['norm_' + column_name] = scalar.fit_transform(df[column_name].values.reshape(-1, 1))
-        if add:
-            self.scalar_columns += ['norm_' + column_name]
+        if not fit:
+            scalar = preprocessing.StandardScaler()
+            df['norm_' + column_name] = scalar.fit_transform(df[column_name].values.reshape(-1, 1))
+            if target:
+                self.y_scalar = scalar
+            else:
+                self.scalar_scalar += [scalar]
+                self.scalar_columns += ['norm_' + column_name]
         else:
-            self.y_scalar = scalar
+            if target:
+                df['norm_' + column_name] = self.y_scalar.transform(df[column_name].values.reshape(-1, 1))
+            else:
+                i = self.scalar_columns.index('norm_' + column_name)
+                df['norm_' + column_name] = self.scalar_scalar[i].transform(df[column_name].values.reshape(-1, 1))
 
     @staticmethod
     def log_transform(df, column_name):
@@ -70,9 +98,32 @@ class FeatureEngine:
         # Extract New Features
         self.extract_date(df)
 
+        # Fill Missing Runtime
+        df['runtime'] = df['runtime'].fillna(df['runtime'].median())
+
+        # Extract New Features
+
+        df['popularity_mean_year'] = df['popularity'] / df.groupby("release_year")["popularity"].transform(
+            'mean')
+        df['budget_runtime_ratio'] = df['budget'] / (df['runtime'] + 0.1)
+        df['budget_popularity_ratio'] = df['budget'] / (df['popularity'] + 0.1)
+        df['budget_year_ratio'] = df['budget'] / (df['release_year'] * df['release_year'])
+
+        df['releaseYear_popularity_ratio'] = df['release_year'] / (df['popularity'] + 0.1)
+        df['releaseYear_popularity_ratio2'] = df['popularity'] / df['release_year']
+
+        df['production_countries_count'] = df['production_countries'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+        df['production_companies_count'] = df['production_companies'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+        df['cast_count'] = df['cast'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+        df['crew_count'] = df['crew'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+        df['num_Keywords'] = df['Keywords'].apply(lambda x: len(x) if isinstance(x, list) else 0)
+
+        df['inflationBudget'] = df['budget'] + df['budget'] * 1.8 / 100 * (
+                2019 - df['release_year'])  # Inflation simple formula
+
         # Drop Unused Features
         # Drop constant value, unique value, uncorrelated value
-        df.drop(['homepage', 'imdb_id', 'original_title', 'status'], axis=1, inplace=True)
+        df.drop(['homepage', 'status'], axis=1, inplace=True)
 
     @staticmethod
     def correct_year(x):
@@ -101,73 +152,134 @@ class FeatureEngine:
         fill_genres(net, df, class_labels)
         '''
 
-        df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
-        df['genres'] = df['genres'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
+        df['belongs_to_collection'].fillna('!')
+        df['genres'].fillna('!')
+        df['production_companies'].fillna('!')
+        df['production_countries'].fillna('!')
+        df['spoken_languages'].fillna('!')
+        df['cast'].fillna('!')
+        df['crew'].fillna('!')
+        df['tagline'] = df['tagline'].fillna('0')
+        df['overview'] = df['overview'].fillna('0')
+
+        df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else ["!"])
+        df['genres'] = df['genres'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else ["!"])
         df['production_companies'] = df["production_companies"].apply(
-        lambda x: [x[i]["name"] for i in range(len(x))] if x != {} else ['UNK']).values
+            lambda x: [x[i]["name"] for i in range(len(x))] if isinstance(x, list) else ["!"]).values
         df['production_countries'] = df['production_countries'].apply(
-            lambda x: [i['name'] for i in x] if x != {} else ['!'])
-        df['spoken_languages'] = df['spoken_languages'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
-        df['Keywords'] = df['Keywords'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
-        df['cast'] = df['cast'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
-        df['crew'] = df['crew'].apply(lambda x: [i['name'] for i in x] if x != {} else ['UNK'])
-        df['tagline'] = df['tagline'].fillna('UNK')
-        df['overview'] = df['overview'].fillna('UNK')
-        df['runtime'] = df['runtime'].fillna(df['runtime'].median())
+            lambda x: [i['name'] for i in x] if isinstance(x, list) else ["!"])
+        df['spoken_languages'] = df['spoken_languages'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else ["!"])
+        df['Keywords'] = df['Keywords'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else ["!"])
+        df['cast'] = df['cast'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else ["!"])
+        df['crew'] = df['crew'].apply(lambda x: [i['name'] for i in x] if isinstance(x, list) else ["!"])
 
-    def feature_encoding(self, df):
+    def feature_encoding(self, df, fit=False):
         # Encode the categorical feature into index
-        self.encode_categorical_to_index(df)
+        self.encode_categorical_to_index(df, fit=fit)
 
-    def encode_categorical_to_index(self, df):
+    def encode_categorical_to_index(self, df, fit):
 
-        # Belongs to Collection
-        le = preprocessing.LabelEncoder()
-        le.fit(['!'] + list(set([i for j in df['belongs_to_collection'] for i in j])))
-        df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: le.transform(x))
-        self.categorical_dims.append(len(le.classes_))
-        self.categorical_columns += ["belongs_to_collection"]
+        if not fit:
+            # Belongs to Collection
+            le = preprocessing.LabelEncoder()
+            le.fit(['!'] + list(set([i for j in df['belongs_to_collection'] for i in j])))
+            df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: le.transform(x))
+            self.categorical_dims.append(len(le.classes_))
+            self.categorical_columns += ["belongs_to_collection"]
+            self.cat_encoder += [le]
 
-        # Genres
-        le = preprocessing.LabelEncoder()
-        le.fit(['!'] +list(set([i for j in df['genres'] for i in j])))
-        df['genres'] = df['genres'].apply(lambda x: le.transform(x))
-        self.categorical_dims.append(len(le.classes_))
-        self.categorical_columns += ["genres"]
+            # Genres
+            le = preprocessing.LabelEncoder()
+            le.fit(['!'] + list(set([i for j in df['genres'] for i in j])))
+            df['genres'] = df['genres'].apply(lambda x: le.transform(x))
+            self.categorical_dims.append(len(le.classes_))
+            self.categorical_columns += ["genres"]
+            self.cat_encoder += [le]
 
-        # Production Company
-        le = preprocessing.LabelEncoder()
+            # Production Company
+            le = preprocessing.LabelEncoder()
 
-        le.fit(['!'] +list(set([i for j in df['production_companies'] for i in j])))
-        df['production_companies'] = df['production_companies'].apply(lambda x: le.transform(x))
-        self.categorical_dims.append(len(le.classes_))
-        self.categorical_columns += ["production_companies"]
+            le.fit(['!'] + list(set([i for j in df['production_companies'] for i in j])))
+            df['production_companies'] = df['production_companies'].apply(lambda x: le.transform(x))
+            self.categorical_dims.append(len(le.classes_))
+            self.categorical_columns += ["production_companies"]
+            self.cat_encoder += [le]
 
-        # Production Counties
-        le = preprocessing.LabelEncoder()
-        le.fit(['!'] +list(set([i for j in df['production_countries'] for i in j])))
-        df['production_countries'] = df['production_countries'].apply(lambda x: le.transform(x))
-        self.categorical_dims.append(len(le.classes_))
-        self.categorical_columns += ["production_countries"]
+            # Production Counties
+            le = preprocessing.LabelEncoder()
+            le.fit(['!'] + list(set([i for j in df['production_countries'] for i in j])))
 
-        # Spoken Language
-        le = preprocessing.LabelEncoder()
-        le.fit(['!'] + list(set([i for j in df['spoken_languages'] for i in j])))
-        df['spoken_languages'] = df['spoken_languages'].apply(lambda x: le.transform(x))
-        self.categorical_dims.append(len(le.classes_))
-        self.categorical_columns += ['spoken_languages']
+            df['production_countries'] = df['production_countries'].apply(lambda x: le.transform(x))
+            self.categorical_dims.append(len(le.classes_))
+            self.categorical_columns += ["production_countries"]
+            self.cat_encoder += [le]
 
-        # Cast
-        le = preprocessing.LabelEncoder()
-        le.fit(['!'] + list(set([i for j in df['cast'] for i in j])))
-        df['cast'] = df['cast'].apply(lambda x: le.transform(x))
-        self.categorical_dims.append(len(le.classes_))
-        self.categorical_columns += ['cast']
+            # Spoken Language
+            le = preprocessing.LabelEncoder()
+            le.fit(['!'] + list(set([i for j in df['spoken_languages'] for i in j])))
+            df['spoken_languages'] = df['spoken_languages'].apply(lambda x: le.transform(x))
+            self.categorical_dims.append(len(le.classes_))
+            self.categorical_columns += ['spoken_languages']
+            self.cat_encoder += [le]
 
-        # Crew
-        le = preprocessing.LabelEncoder()
-        le.fit(['!'] + list(set([i for j in df['crew'] for i in j])))
-        df['crew'] = df['crew'].apply(lambda x: le.transform(x))
-        self.categorical_dims.append(len(le.classes_))
-        self.categorical_columns += ['crew']
+            # Cast
+            le = preprocessing.LabelEncoder()
+            le.fit(['!'] + list(set([i for j in df['cast'] for i in j])))
+            df['cast'] = df['cast'].apply(lambda x: le.transform(x))
+            self.categorical_dims.append(len(le.classes_))
+            self.categorical_columns += ['cast']
+            self.cat_encoder += [le]
 
+            # Crew
+            le = preprocessing.LabelEncoder()
+            le.fit(['!'] + list(set([i for j in df['crew'] for i in j])))
+            df['crew'] = df['crew'].apply(lambda x: le.transform(x))
+            self.categorical_dims.append(len(le.classes_))
+            self.categorical_columns += ['crew']
+            self.cat_encoder += [le]
+        else:
+            # Belongs to Collection
+            i = self.categorical_columns.index("belongs_to_collection")
+            le = self.cat_encoder[i]
+            df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: [i for i in x if i in le.classes_])
+            df["belongs_to_collection"] = df["belongs_to_collection"].apply(lambda x: le.transform(x))
+
+            # Genres
+            i = self.categorical_columns.index("genres")
+            le = self.cat_encoder[i]
+            df['genres'] = df['genres'].apply(lambda x: le.transform(x))
+
+            # Production Company
+            i = self.categorical_columns.index("production_companies")
+            le = self.cat_encoder[i]
+            df['production_companies'] = df['production_companies'].apply(
+                lambda x: [i for i in x if i in le.classes_])
+            df['production_companies'] = df['production_companies'].apply(lambda x: le.transform(x))
+
+            # Production Counties
+            i = self.categorical_columns.index("production_countries")
+            le = self.cat_encoder[i]
+            df['production_countries'] = df['production_countries'].apply(
+                lambda x: [i for i in x if i in le.classes_])
+            df['production_countries'] = df['production_countries'].apply(lambda x: le.transform(x))
+
+            # Spoken Language
+            i = self.categorical_columns.index("spoken_languages")
+            le = self.cat_encoder[i]
+            df['spoken_languages'] = df['spoken_languages'].apply(
+                lambda x: [i for i in x if i in le.classes_])
+            df['spoken_languages'] = df['spoken_languages'].apply(lambda x: le.transform(x))
+
+            # Cast
+            i = self.categorical_columns.index("cast")
+            le = self.cat_encoder[i]
+            df['cast'] = df['cast'].apply(
+                lambda x: [i for i in x if i in le.classes_])
+            df['cast'] = df['cast'].apply(lambda x: le.transform(x))
+
+            # Crew
+            i = self.categorical_columns.index("crew")
+            le = self.cat_encoder[i]
+            df['crew'] = df['crew'].apply(
+                lambda x: [i for i in x if i in le.classes_])
+            df['crew'] = df['crew'].apply(lambda x: le.transform(x))

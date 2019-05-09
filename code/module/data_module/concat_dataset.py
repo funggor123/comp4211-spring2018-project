@@ -17,10 +17,13 @@ class ConcatDataset(data.Dataset):
 
     def __getitem__(self, index):
         """Returns one data pair (source and target)."""
-        return [dataset.__getitem__(index) for dataset in self.x_list], self.y.__getitem__(index)
+        if self.y is not None:
+            return [dataset.__getitem__(index) for dataset in self.x_list], self.y.__getitem__(index)
+        else:
+            return [dataset.__getitem__(index) for dataset in self.x_list], None
 
     def __len__(self):
-        return len(self.y)
+        return self.x_list[0].__len__()
 
 
 def my_collate(batch):
@@ -29,7 +32,12 @@ def my_collate(batch):
     return [data, target]
 
 
-def get_data_loader(df, fg, args, vocab, handler, test=False):
+def my_collate_test(batch):
+    data = [item[0] for item in batch]
+    return data
+
+
+def get_data_loader(df, fg, args, vocab, handler, val=False, test=False):
     categorical_dataset = cat_dataset.get_dataset(df, fg.categorical_columns)
     scalar_dataset = sc_dataset.get_dataset(df, fg.scalar_columns)
 
@@ -38,12 +46,30 @@ def get_data_loader(df, fg, args, vocab, handler, test=False):
     title_dataset = txt_dataset.get_dataset(df, fg.text_column[2], vocab)
 
     poster_dataset = img_dataset.get_dataset(df, handler)
+    dataset = None
+    data_loader = None
 
-    label_dataset = y_dataset.get_dataset(df, fg.y_column)
-    dataset = ConcatDataset([categorical_dataset, scalar_dataset, overview_dataset, tagline_dataset, title_dataset, poster_dataset], label_dataset)
-    data_loader = torch.utils.data.DataLoader(dataset=dataset,
-                                              batch_size=args.batch_size,
-                                              collate_fn=my_collate,
-                                              shuffle=not test)
+    if not test:
+        label_dataset = y_dataset.get_dataset(df, fg.y_column)
+        dataset = ConcatDataset(
+            [categorical_dataset, scalar_dataset, overview_dataset, tagline_dataset, title_dataset, poster_dataset],
+            label_dataset)
+
+    if test:
+        dataset = ConcatDataset(
+            [categorical_dataset, scalar_dataset, overview_dataset, tagline_dataset, title_dataset, poster_dataset],
+            None)
+
+    if not test:
+        data_loader = torch.utils.data.DataLoader(dataset=dataset,
+                                                  batch_size=args.batch_size,
+                                                  collate_fn=my_collate,
+                                                  shuffle=not val)
+
+    if test:
+        data_loader = torch.utils.data.DataLoader(dataset=dataset,
+                                                  batch_size=args.batch_size,
+                                                  collate_fn=my_collate_test,
+                                                  shuffle=not val)
 
     return data_loader

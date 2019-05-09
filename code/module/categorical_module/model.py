@@ -6,14 +6,14 @@ import torch.nn.utils.rnn as rnn_utils
 
 # Encode all Categorical Features into a categorical hidden vector
 class CategoricalEncoder(nn.Module):
-    def __init__(self, input_dims):
+    def __init__(self, input_dims, drop=0.25):
         super(CategoricalEncoder, self).__init__()
 
         # https://datascience.stackexchange.com/questions/31109/ratio-between-embedded-vector-dimensions-and-vocabulary-size
         self.embedding_dims = [int(dim ** 0.25) for dim in input_dims]
-        self.feature_linear_dim = [int(dim ** 1.25) for dim in self.embedding_dims]
-        self.encode_input_dim = sum(self.feature_linear_dim)
-        self.encode_output_dim = int(self.encode_input_dim ** 1.25)
+        self.feature_linear_dim = [int(dim) for dim in self.embedding_dims]
+        self.encode_input_dim = sum(self.feature_linear_dim) ** 1
+        self.encode_output_dim = int(self.encode_input_dim ** 1)
 
         assert len(input_dims) == len(self.embedding_dims)
 
@@ -27,14 +27,14 @@ class CategoricalEncoder(nn.Module):
                 nn.Linear(self.embedding_dims[i], self.feature_linear_dim[i]),
                 nn.RReLU(),
                 nn.BatchNorm1d(self.feature_linear_dim[i]),
-                #nn.Dropout(self.drop_rate)
+                nn.Dropout(drop)
             ) for i in range(len(input_dims))])
 
         self.encode_linear = nn.Sequential(
             nn.Linear(self.encode_input_dim, self.encode_output_dim),
             nn.RReLU(),
             nn.BatchNorm1d(self.encode_output_dim),
-            #nn.Dropout(self.drop_rate)
+            nn.Dropout(drop)
         )
         print("------Categorical Network Detail-------")
         print("Embedding dim :", self.embedding_dims)

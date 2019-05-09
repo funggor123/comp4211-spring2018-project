@@ -19,6 +19,7 @@ writer_vad = SummaryWriter('logs/vad_0')
 
 # https://www.kaggle.com/nakayamar/revenue-prediction-with-posters-using-cnn-keras
 def trainer(args, train_loader, test_loader, model, fg=None):
+
     best_loss = sys.maxsize
     stop_count = 0
     criterion = nn.MSELoss()
@@ -61,12 +62,13 @@ def trainer(args, train_loader, test_loader, model, fg=None):
 
         if args.early_stop is not -1:
 
-            writer_train.add_histogram("last_linear", model.linear_last.weight.grad, epoch + 1)
             writer_train.add_histogram("linear", model.linear1[0].weight.grad, epoch + 1)
             writer_train.add_histogram("linear2", model.linear2[0].weight.grad, epoch + 1)
+            writer_train.add_histogram("last_linear", model.linear_last.weight.grad, epoch + 1)
 
             writer_train.add_histogram("attention_linear0", model.categorical_encoder.attention_linear[0].weight.grad,
                                        epoch + 1)
+
             writer_train.add_histogram("attention_linear1", model.categorical_encoder.attention_linear[1].weight.grad,
                                        epoch + 1)
             writer_train.add_histogram("attention_linear2", model.categorical_encoder.attention_linear[2].weight.grad,
@@ -92,6 +94,11 @@ def trainer(args, train_loader, test_loader, model, fg=None):
             writer_train.add_histogram("overview_encoder_linear", model.overview_encoder.linear_hidden[0].weight.grad,
                                        epoch + 1)
             writer_train.add_histogram("overview_encoder_linear", model.overview_encoder.attention_linear.weight.grad,
+                                       epoch + 1)
+
+            writer_train.add_histogram("tagline_encoder_linear", model.tagline_encoder.linear_hidden[0].weight.grad,
+                                       epoch + 1)
+            writer_train.add_histogram("tagline_encoder_linear", model.tagline_encoder.attention_linear.weight.grad,
                                        epoch + 1)
 
             vad_loss = validator(args, test_loader, model)
@@ -139,7 +146,7 @@ def validator(args, test_loader, model):
     return running_loss / batch_count
 
 
-def predictor(args, test_loader, model):
+def predictor(args, test_loader, model, fg):
     results = []
 
     model.eval()
@@ -150,7 +157,9 @@ def predictor(args, test_loader, model):
         # get the inputs
         inputs = data
         outputs = model(inputs)
-        results.append(np.expm1(outputs.cpu().detach().numpy()))
+        result = outputs.cpu().detach().numpy()
+        result = np.expm1(fg.y_scalar.inverse_transform(result))
+        [results.append(int(item[0])) for item in result]
 
     sub1 = pd.read_csv('./sample_submission.csv')
     sub1['revenue'] = results
@@ -159,25 +168,18 @@ def predictor(args, test_loader, model):
     print("submit file :" + sub_file_name)
 
 
-# Drop Rate, Learning Rate
-def tuner():
-    print("hi")
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--lr", type=float, default=3e-4)
-    parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--epoch", type=int, default=100000)
-    parser.add_argument("--drop_prob", type=int, default=0.3)
+    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--epoch", type=int, default=500)
+    parser.add_argument("--drop_prob", type=int, default=0.5)
     parser.add_argument("--test_size", type=float, default=0.2)
-    parser.add_argument("--tune", type=bool, default=False)
-    parser.add_argument("--save", type=bool, default=False)
-    parser.add_argument("--analysis", type=bool, default=False)
+    parser.add_argument("--analysis", type=bool, default=True)
     parser.add_argument("--train", type=bool, default=True)
     parser.add_argument("--test", type=bool, default=True)
     parser.add_argument("--gpu", type=bool, default=torch.cuda.is_available())
-    parser.add_argument("--early_stop", type=int, default=300000)
+    parser.add_argument("--early_stop", type=int, default=100)
     parser.add_argument("--print_batch", type=int, default=70)
     parser.add_argument("--print_epoch", type=int, default=5)
     parser.add_argument("--sampling_epoch", type=int, default=50)
@@ -187,11 +189,13 @@ def main():
 
     if args.analysis:
         analyser.analysis(train_df)
+        preprocessor.preprocess(test_df)
     else:
         preprocessor.preprocess(train_df)
+        preprocessor.preprocess(test_df)
 
     fg = feature_engineer.FeatureEngine()
-    fg.run(train_df)
+    fg.transform_and_fit(train_df)
 
     if args.analysis:
         analyser.analysis_after_transform(train_df)
@@ -203,16 +207,16 @@ def main():
         handler.download_all_posters(train_df)
         train_df, vad_df = train_test_split(train_df, test_size=args.test_size, random_state=42)
         train_data_loader = concat_dataset.get_data_loader(train_df, fg, args, vocab, handler)
-        val_data_loader = concat_dataset.get_data_loader(vad_df, fg, args, vocab, handler, test=True)
-        model = MainModel(fg.categorical_dims, len(fg.scalar_columns), embedding_matrix=vocab.embeddings_matrix)
+        val_data_loader = concat_dataset.get_data_loader(vad_df, fg, args, vocab, handler, val=True)
+        model = MainModel(fg.categorical_dims, len(fg.scalar_columns), embedding_matrix=vocab.embeddings_matrix, drop=args.drop_prob)
         model = trainer(args, train_data_loader, val_data_loader, model, fg)
 
     if args.test and model is not None:
-        # FE
+        fg.transform(test_df)
         handler = ImageHandler("test")
         handler.download_all_posters(test_df)
-        test_data_loader = concat_dataset.get_data_loader(test_df, fg, args, vocab, handler, test=True)
-        predictor(args, test_data_loader, model)
+        test_data_loader = concat_dataset.get_data_loader(test_df, fg, args, vocab, handler, val=True, test=True)
+        predictor(args, test_data_loader, model, fg)
 
 
 main()

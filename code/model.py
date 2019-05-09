@@ -7,15 +7,15 @@ import torch
 
 
 class MainModel(nn.Module):
-    def __init__(self, categorical_dims, scalar_dims, embedding_matrix=None):
+    def __init__(self, categorical_dims, scalar_dims, embedding_matrix=None, drop=0.25):
         super(MainModel, self).__init__()
 
-        self.categorical_encoder = CategoricalEncoder(categorical_dims)
-        self.scalar_encoder = ScalarEncoder(scalar_dims)
+        self.categorical_encoder = CategoricalEncoder(categorical_dims, drop=drop)
+        self.scalar_encoder = ScalarEncoder(scalar_dims, drop=drop)
 
-        self.overview_encoder = BiLSTMAttention(embedding_matrix=embedding_matrix)
-        self.tagline_encoder = BiLSTMAttention(embedding_matrix=embedding_matrix)
-        self.title_encoder = BiLSTMAttention(embedding_matrix=embedding_matrix)
+        self.overview_encoder = BiLSTMAttention(embedding_matrix=embedding_matrix, drop=drop)
+        self.tagline_encoder = BiLSTMAttention(embedding_matrix=embedding_matrix, drop=drop)
+        self.title_encoder = BiLSTMAttention(embedding_matrix=embedding_matrix, drop=drop)
 
         self.image_encoder = ImageEncoder()
 
@@ -29,7 +29,8 @@ class MainModel(nn.Module):
         self.linear1 = nn.Sequential(
             nn.Linear(self.encoder_output_dim, self.l1_out_dim),
             nn.RReLU(),
-            nn.BatchNorm1d(self.l1_out_dim)
+            nn.BatchNorm1d(self.l1_out_dim),
+            nn.Dropout(drop)
         )
 
         self.linear2 = nn.Sequential(
@@ -49,7 +50,7 @@ class MainModel(nn.Module):
         sc_h = self.scalar_encoder([item[1] for item in x])
 
         overview_h = self.overview_encoder([item[2] for item in x])
-        tagline_h = self.overview_encoder([item[3] for item in x])
+        tagline_h = self.tagline_encoder([item[3] for item in x])
         title_h = self.title_encoder([item[4] for item in x])
 
         poster_h = self.image_encoder([item[5] for item in x])
