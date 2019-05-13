@@ -23,7 +23,7 @@
 \usepackage{microtype}      % microtypography
 \usepackage{graphicx}
 
-\title{Kaggle Compeition : TMDB Box Office Prediction with Deep Neural Network}
+\title{Kaggle Competition : TMDB Box Office Prediction with Deep Neural Network}
 
 \author{%
 	Cheng Chi Fung (12219691)\\
@@ -35,7 +35,7 @@
 \maketitle
 
 \begin{abstract}
-In this project, we try to use deep neural network to tackle the TMDB Box Office Prediction Compeition ( \url{https://www.kaggle.com/c/tmdb-box-office-prediction/data}), a box office revenue prediction competition based on the metadata of past films from The Movie Database (TMDB). The architecture of our deep neural network is mainly composed by attension-based bi-LSTM, Resnet and feedforward network with attention and it is trained by the movie data after feature enginerring that achieves a test set minimum MST Loss of 0.5991 and obtain the score 2.66035 on kaggle platform
+In this project, we try to applying deep neural network to tackle the TMDB Box Office Prediction Compeition ( \url{https://www.kaggle.com/c/tmdb-box-office-prediction/data}), a box office revenue prediction competition based on the metadata of past films from The Movie Database (TMDB). The architecture of our deep neural network is mainly composed by attention-based bi-LSTM, Resnet and feedforward network with attention and it is trained by the movie data after feature enginerring that achieves a test set minimum MST Loss of 0.5991 and obtain the score 2.66035 on kaggle platform.
 \end{abstract}
 
 \section{Introduction}
@@ -45,7 +45,7 @@ Film industry is booming, the revunues are growing, so we have a lot of data abo
 
 \subsection{Box Office with Deep Neural Network} 
 
-Moreover, we find that most of the participants in this kaggle compeition using some popular machine learning model like xgboost or lightgbm to solve the problem and achieve a very good results (from kaggle discussion and kernel) and none of the participants using deep neural network. Therefore, in the project, we also want to see the performance of applying deep neural learning in this problem.
+Moreover, we find that most of the participants in this kaggle compeition using some popular machine learning model like xgboost or lightgbm to solve the problem and achieve a very good results (from kaggle discussion and kernel) and only a few of the participants neural network. Therefore, in the project, we also want to see the performance of applying deep neural network in this problem.
 
 \subsection{Problem Statement}
 
@@ -53,7 +53,7 @@ In this probject, we are going to implement a deep neural network model by using
 
 \section{Dataset}
 
-The dataset will be using in this project is the movie dataset given in this kaggle compeition, which is a dataset consisting of 7,398 past films metadata  collected from The Movie Database (TMDB). Moreover, this dataset has been further seperated into training set and test set which consists of 3,000 films and 4,398 films metadata respectively. The data point in the dataset includes the films's cast, crew, plot keywords, budget, posters, release dates, languages, production companies, and countries etc. The full list of the features in the original dataset are as follow.
+The dataset used in this project is the movie dataset given in this kaggle compeition, which is a dataset consisting of 7,398 past films metadata  collected from The Movie Database (TMDB). Moreover, this dataset has been further seperated into training set and test set which consists of 3,000 films and 4,398 films metadata respectively. The data point in the dataset includes the films's cast, crew, plot keywords, budget, posters, release dates, languages, production companies, and countries etc. The full list of the features in the metadata are as follow.
 
 \begin{table}[htb]
 	\caption{dataset columns}
@@ -94,7 +94,7 @@ The dataset will be using in this project is the movie dataset given in this kag
 \pagebreak
 
 \subsection{Exploratory Data Analysis}
-Before the data preprocessing, some analysis has been performed on the training sets to summarize their main characteristics
+Before the data preprocessing, some analysis has been performed on the training sets to summarize their main characteristics.
 
 
 \subsubsection{Number of Missing Values}
@@ -189,14 +189,14 @@ We can see the budget is increasing each year. This may be because of inflation.
 
 \subsection{Data Preprocessing and Feature Enginerring}
 
-Before the data are feeded into neural network, some feature enginerring and data preprocessing are performed to enhance the training performance. And it is mainly composed by four parts (Feature Selection, Data Cleaning, Encoding and Feature transformation)
+Before the data are feeded into the neural network, some feature enginerring and data preprocessing are performed to enhance the training performance. And it is mainly composed by four parts (Feature Selection, Data Cleaning, Encoding and Feature transformation)
 
 
 \subsubsection{Feature Selection}
 
-	In feature selection part, some new features are extracted from the original features in the metadata and some unused features are dropped. 
+	In feature selection part, some new features are extracted from the metadata and some not meaningful features are dropped. 
 	
-The following are the new features we extracted.
+The following are the new features we have extracted.
 	
 	\begin{table}[htb]
 	\caption{new features extracted}
@@ -244,8 +244,7 @@ The following are the features we dropped.
 	\end{tabular}
 \end{table}
 
-After performaning the feature selection, the following features are used for the prediction
-and we can categories them into four types, namely catatogical, numerical, text and image.
+After performing the feature selection, the following features  are used in the prediction part and we can categories them into four types, namely catatogical, numerical, text and image.
 
 \begin{table}[htb]
 	\caption{selected features after feature selection}
@@ -293,19 +292,19 @@ and we can categories them into four types, namely catatogical, numerical, text 
 \pagebreak
 
 \subsubsection{Data Cleaning}
-	In data cleaning part, the features with missing value are filled and transfer into the easy processable format. In addition, the text features will be cleaned with serveral procedures.
+	In data cleaning part, the features with missing value are filled and transfer into the easy processable format. In addition, the text features are cleaned with serveral procedures.
 	
-	For all the columns which are in the dictionary format in the metadata (belongs\_to\_collection, genres, production\_companies, production\_coutries, spoken\_languages, Keywords, cast, crew), we extract the value with the key "name" and give up all other things such as id in the dict . For the other columns, we keep them as the original forms as in the meta data.
+	For all the columns having the dictionary format in the metadata (belongs\_to\_collection, genres, production\_companies, production\_coutries, spoken\_languages, Keywords, cast, crew), we extract the value with the key "name" and give up all other things such as id in the dict . For the other columns, we keep them as the original forms as in the meta data.
 	
 	For all the catagorical features, we fill all the missing value by "!". Moreover, for the scalar columns, we fill the missing value by their median since it is more resistant to  outlier.
 	
-	Moreover, for the data cleaning of all the text features, we first turn all the unicode string into \textbf{ASCII} and \textbf{lower case}. Then, we \textbf{expand the contradiction} and \textbf{remove all the characters except (A-Za-z0-9,.!?;)}.
+	Moreover, for the data cleaning of the text features, we first turn all the unicode string into \textbf{ASCII} and \textbf{lower case}. Then, we \textbf{expand the contradiction} and \textbf{remove all the characters except (A-Za-z0-9,.!?;)}.
 	
 \subsubsection{Data Encoding}
-	In encoding part, all the catagorical feature are encoded into integer representation.
+	In encoding part, all the catagorical feature are encoded into one hot representation.
 
 \subsubsection{Feature Transformation}
-In feature transformation part, the scalar feature are transformed into the disturbution that are easily trained by neural network. The transofmations of the scalar columns are shown below.
+In feature transformation part, the scalar features are transformed into the disturbution that are easily trained by neural network. The transofmations of the scalar columns are shown below.
 
 \begin{table}[htb]
 	\caption{feature transformation}
@@ -326,7 +325,7 @@ In feature transformation part, the scalar feature are transformed into the dist
 	\end{tabular}
 \end{table}
 
-For log transform, it is refered to using applying log to feature. the skew data into normal like disbutrubtion. For cyclic transform, we take a reference from \url{(https://ianlondon.github.io/blog/encoding-cyclical-features-24hour-time/)}. It used is to encode the cyclical continuous features into encoding with cyclical nature. For standardize, it transforms the feature into mean = 0 and variance = 1.
+For log transform, it refers to applying log to transform the feature which turn the skewed data into normal like disbutrubtion. For cyclic transform, we take a reference from \url{(https://ianlondon.github.io/blog/encoding-cyclical-features-24hour-time/)}. It used is to encode the cyclical continuous features into encoding with cyclical nature. For standardize, it transforms the feature into mean = 0 and variance = 1.
 
 For image features, they are transformed into grey scale with normalization.
 
@@ -347,7 +346,9 @@ In the project, we try to apply deep neural network to predict the box office re
 
 \subsubsection{Categorical Encoder}
 
-The categorical encoder in our network is used to encode all catagorical features. It is composed by an embedding layer to embbed the feature inputs, an additive attention layer to handle the features that can have \textbf{multiple values} such as genres. (A film can have multiple genres), and two dense layers to embed all categorical features into a feature vector.
+The categorical encoder in our network is to encode all catagorical features. It is composed by an embedding layer to embbed the feature inputs, an additive attention layer to handle the features that can have \textbf{multiple values} such as genres. (A film can have multiple genres), and two dense layers to embed all categorical features into a feature vector.
+
+\pagebreak
 
 \begin{figure}[h]
   \centering
@@ -358,7 +359,7 @@ The categorical encoder in our network is used to encode all catagorical feature
 
 \subsubsection{Numerical Encoder}
 
-The numerical encoder in our network is used to encode the numerical features. It is composed by a dense layer to embed all the numerical feature in to a feature vector.
+The numerical encoder in our network is to encode the numerical features. It is composed by a dense layer to embed all the numerical feature in to a feature vector.
 
 \begin{figure}[h]
   \centering
@@ -369,7 +370,7 @@ The numerical encoder in our network is used to encode the numerical features. I
 \subsubsection{Text Encoder}
 
 
-The text encoder in our network is used to encode the text features. It is composed by a word2Vector  embedding layer, an Attention Based Bi-LSTM layer and a dense layer to embbed the text feature into a context vector.
+The text encoder in our network is to encode the text features. It is composed by a word2Vector  embedding layer, an Attention Based Bi-LSTM layer and a dense layer to embbed the text feature into a context vector.
 
 For the word embedding layer, it has been pretrained with \textbf{Google News corpus} (3 billion running words) word vector model. (Google News Corpus: \url{https://github.com/mmihaltz/word2vec-GoogleNews-vectors)}. And since the dimension of the embedding matrix is enormously big which cause some memory error during training, we have limited to only use ten thousands of vocabs. All above process can be easily done through a python libarary named \textbf{gensim}.
 
@@ -383,7 +384,7 @@ For Attention Based Bi-LSTM, the archiecture of is same as the paper \textbf{Att
 
 \subsubsection{Image Encoder}
 
-The image encoder in our network is used to encode the image feature. It is composed by a pretrained \textbf{18 layers ResNet} and a dense layer to embed image feature in to a feature vector. 
+The image encoder in our network is to encode the image feature. It is composed by a pretrained \textbf{18 layers ResNet} and a dense layer to embed image feature in to a feature vector. 
 
 The pretained resnet can be easily done through a python libarary named \textbf{torchvision.models}
 
@@ -396,6 +397,8 @@ The pretained resnet can be easily done through a python libarary named \textbf{
 \subsubsection{Main Net}
 
 The main net is used to concatenate all the feature vectors from different encoders and predict the final results. It is compose by two dense layers and a output layer with a hidden unit.
+
+\pagebreak
 
 \begin{figure}[h]
   \centering
@@ -428,8 +431,7 @@ The dense layer setting in our network are as follow. Except the last dense laye
 
 \section{Experimental Setting}
 
-For the experiment, we have further splitted the training set into training set and validation set with the ratio 8:2. We use the train using our training set and perform the hyperparameters tuning using the validation set. After performing the tuning, we train the model with the best hyperparameter obtained and test the model on the test set.
-Moreover, the training will be early stopped when the validation MSE Loss has decraseed for specified number of epochs.
+For the experiment, we have further splitted the training set into training set and validation set with the ratio 8:2. We first traing out model using the training set and perform the hyperparameters performance evluation using the validation set with different hyperparameters. After hyperparameters tuning, we train the model with the best hyperparameter obtained and test the model on the test set. Moreover, the training is to be early stopped when the validation MSE Loss has decreased for specified number of epochs.
 
 
 \subsection{Computational Environment}
@@ -454,10 +456,12 @@ All the experiment conducted in this project using the following computational e
 	\end{tabular}
 \end{table}
 \subsection{Hyperparameters Tuning}
-For the hyperparameters tuning, we perform using grid search to find the best hyparameters of drop out rate, learning rate and the size of the number of hidden units in the last dense layer of main net.
+For the hyperparameters tuning, we perform grid search to find the best hyper-parameters (drop out rate, learning rate and the the number of hidden units in the last dense layer of main net)
 
-\subsubsection{Tuning Environments}
-For the hyperparameters tuning, the following environment are used. 
+\subsubsection{Hyperparameters Tuning Environments}
+For the hyperparameters tuning, the following training environment are used. 
+
+\pagebreak
 
 \begin{table}[htb]
 	\caption{Tuning Environment}
@@ -477,9 +481,8 @@ For the hyperparameters tuning, the following environment are used.
 \end{table}
 
 
-\subsubsection{Tuning Results}
+\subsubsection{Hyperparameters Tuning Results}
 
-\pagebreak
 
 \begin{table}[htb]
 	\caption{Hyperparameter tuning results}
@@ -514,9 +517,9 @@ For the hyperparameters tuning, the following environment are used.
 Best Parameters Hyperparameter obtained { learning rate : 0.001, Dropout: 0.4, Number of Hidden Unit: 500}
 
  
-\subsection{Final Training Parameters Setting and Environment}
+\subsection{Final Training Parameters Settings and Environment}
 
-We use the best hyperparameters obtained from tuning and train the model same as the archiecture above with the following parameters settings.
+We use the best hyperparameters obtained from hyperparameters tuning and train the model same as the architecture above with the following parameters settings.
 
 \begin{table}[htb]
 	\caption{Training Parameters Settings}
@@ -541,7 +544,7 @@ We use the best hyperparameters obtained from tuning and train the model same as
 \section{Results and Analysis}
 
 \subsection{Performance}
-The following are the results of the final training with the best hyperparameters. You can find me on the leaderboard with the name fingnn.
+The following are the results of the final training with the specification in the last past. You can find me on the leaderboard with the name fingnn.
 
 \begin{table}[htb]
 	\caption{Score in Kaggle}
@@ -571,6 +574,8 @@ The following are the results of the final training with the best hyperparameter
 	\end{tabular}
 \end{table}
 
+\pagebreak
+
 \begin{table}[htb]
 	\caption{Time Used for the experiments}
 	\label{sample-table}
@@ -587,7 +592,8 @@ The following are the results of the final training with the best hyperparameter
 \end{table}
 
 
-\pagebreak
+
+
 
 \subsection{Learning Curve}
 The below are the loss curve trained with best hyper-params. The blue curve is the validation MSE Loss. The orange curve are the training MSE Loss Curve.
@@ -647,8 +653,6 @@ In the gradient histogram, we can see the even we trained the network for 1100 e
 
 \pagebreak
 
-
-\subsection{Some samples from prediction}
 
 \subsection{Problems}
 
